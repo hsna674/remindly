@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -277,7 +278,7 @@ private fun ReminderItem(
             modifier = Modifier
                 .size(12.dp)
                 .clip(CircleShape)
-                .background(Color(android.graphics.Color.parseColor(classColor)))
+                .background(Color(classColor.toColorInt()))
         )
 
         Spacer(modifier = Modifier.width(12.dp))
@@ -290,7 +291,8 @@ private fun ReminderItem(
                 text = reminder.name,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = if (reminder.isCompleted) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                textDecoration = if (reminder.isCompleted) TextDecoration.LineThrough else TextDecoration.None,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )

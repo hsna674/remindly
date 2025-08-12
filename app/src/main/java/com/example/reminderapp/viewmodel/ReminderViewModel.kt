@@ -78,9 +78,11 @@ class ReminderViewModel(application: Application) : AndroidViewModel(application
                 }
 
                 repository.insertReminder(reminder)
-                // Schedule notifications for the new reminder
+                // Schedule notifications for the new reminder if not completed
                 val settings = notificationSettings.value
-                notificationScheduler.scheduleNotificationsForReminder(reminder, settings)
+                if (!reminder.isCompleted) {
+                    notificationScheduler.scheduleNotificationsForReminder(reminder, settings)
+                }
                 Log.d("ReminderViewModel", "Successfully added reminder: ${reminder.name}")
             } catch (e: Exception) {
                 Log.e("ReminderViewModel", "Error adding reminder: ${e.message}")
@@ -111,16 +113,23 @@ class ReminderViewModel(application: Application) : AndroidViewModel(application
                     return@launch
                 }
 
-                // Cancel old notifications and schedule new ones
+                // Cancel old notifications and schedule new ones if not completed
                 val settings = notificationSettings.value
                 notificationScheduler.cancelNotificationsForReminder(reminder.id, settings)
                 repository.updateReminder(reminder)
-                notificationScheduler.scheduleNotificationsForReminder(reminder, settings)
+                if (!reminder.isCompleted) {
+                    notificationScheduler.scheduleNotificationsForReminder(reminder, settings)
+                }
                 Log.d("ReminderViewModel", "Successfully updated reminder: ${reminder.name}")
             } catch (e: Exception) {
                 Log.e("ReminderViewModel", "Error updating reminder: ${e.message}")
             }
         }
+    }
+
+    fun setReminderCompleted(reminder: Reminder, completed: Boolean) {
+        val updated = reminder.copy(isCompleted = completed)
+        updateReminder(updated)
     }
 
     fun updateSchoolClasses(classes: List<SchoolClass>) {
@@ -148,9 +157,11 @@ class ReminderViewModel(application: Application) : AndroidViewModel(application
             notificationScheduler.cancelNotificationsForReminder(reminder.id, settings)
         }
 
-        // Schedule new notifications with updated settings
+        // Schedule new notifications with updated settings, skip completed reminders
         reminders.forEach { reminder ->
-            notificationScheduler.scheduleNotificationsForReminder(reminder, settings)
+            if (!reminder.isCompleted) {
+                notificationScheduler.scheduleNotificationsForReminder(reminder, settings)
+            }
         }
     }
 

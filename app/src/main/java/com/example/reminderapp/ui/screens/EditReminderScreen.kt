@@ -1,7 +1,5 @@
 package com.example.reminderapp.ui.screens
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -36,6 +34,9 @@ fun EditReminderScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showClassDropdown by remember { mutableStateOf(false) }
     var showDatePicker by remember { mutableStateOf(false) }
+    // New fields for tracking
+    var isTrackable by remember { mutableStateOf(reminder.isTrackable) }
+    var isCompleted by remember { mutableStateOf(reminder.isCompleted) }
 
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = selectedDate.toEpochDay() * 24 * 60 * 60 * 1000
@@ -184,7 +185,7 @@ fun EditReminderScreen(
                             },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .menuAnchor(),
+                                .menuAnchor(MenuAnchorType.PrimaryNotEditable),
                             shape = RoundedCornerShape(8.dp)
                         )
 
@@ -244,6 +245,65 @@ fun EditReminderScreen(
                 }
             }
 
+            // Trackable toggle
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                ),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Track this reminder",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = "Adds a checkbox so you can mark it completed",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        )
+                    }
+                    Switch(checked = isTrackable, onCheckedChange = {
+                        isTrackable = it
+                        if (!it) isCompleted = false
+                    })
+                }
+            }
+
+            if (isTrackable) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Checkbox(checked = isCompleted, onCheckedChange = { isCompleted = it })
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Mark as completed",
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+            }
+
             Spacer(modifier = Modifier.weight(1f))
 
             // Save Button
@@ -253,7 +313,9 @@ fun EditReminderScreen(
                         val updatedReminder = reminder.copy(
                             name = reminderName,
                             className = selectedClass!!.name,
-                            date = selectedDate
+                            date = selectedDate,
+                            isTrackable = isTrackable,
+                            isCompleted = if (isTrackable) isCompleted else false
                         )
                         onReminderUpdated(updatedReminder)
                     }

@@ -28,6 +28,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 // Animation imports
@@ -57,6 +58,7 @@ import com.example.reminderapp.data.SchoolClass
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.res.painterResource
+import androidx.core.graphics.toColorInt
 import com.example.reminderapp.viewmodel.ReminderViewModel
 
 class MainActivity : ComponentActivity() {
@@ -65,8 +67,7 @@ class MainActivity : ComponentActivity() {
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         if (!isGranted) {
-            // Could show a dialog explaining why notifications are important
-            // For now, the app will work but notifications won't show
+            // No-op for now
         }
     }
 
@@ -159,6 +160,9 @@ fun ReminderApp() {
                 },
                 onDeleteReminder = { reminder ->
                     viewModel.deleteReminder(reminder)
+                },
+                onToggleComplete = { reminder, completed ->
+                    viewModel.setReminderCompleted(reminder, completed)
                 }
             )
             "edit_reminder" -> {
@@ -378,7 +382,7 @@ fun CalendarScreen(
                                     modifier = Modifier
                                         .size(12.dp)
                                         .clip(CircleShape)
-                                        .background(Color(android.graphics.Color.parseColor(classColor)))
+                                        .background(Color(classColor.toColorInt()))
                                 )
 
                                 Spacer(modifier = Modifier.width(8.dp))
@@ -387,7 +391,8 @@ fun CalendarScreen(
                                     text = reminder.name,
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Medium,
-                                    color = MaterialTheme.colorScheme.onSurface,
+                                    color = if (reminder.isCompleted) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                                    textDecoration = if (reminder.isCompleted) TextDecoration.LineThrough else TextDecoration.None,
                                     maxLines = 1,
                                     overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                                     modifier = Modifier.weight(1f)
@@ -501,22 +506,6 @@ fun CalendarScreen(
                 }
             }
         }
-
-        // Settings Floating Action Button
-        /*FloatingActionButton(
-            onClick = onSettingsClick,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(16.dp),
-            containerColor = MaterialTheme.colorScheme.secondary,
-            contentColor = MaterialTheme.colorScheme.onSecondary
-        ) {
-            Icon(
-                imageVector = Icons.Default.Settings,
-                contentDescription = "Settings",
-                modifier = Modifier.size(24.dp)
-            )
-        }*/
     }
 }
 

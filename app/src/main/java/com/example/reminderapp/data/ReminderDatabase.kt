@@ -8,7 +8,7 @@ import android.content.Context
 
 @Database(
     entities = [Reminder::class],
-    version = 1,
+    version = 2,
     exportSchema = true
 )
 @TypeConverters(Converters::class)

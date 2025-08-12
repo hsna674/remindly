@@ -11,6 +11,8 @@ data class Reminder(
     val name: String,
     val className: String,
     val date: LocalDate,
+    val isTrackable: Boolean = false,
+    val isCompleted: Boolean = false,
     val createdAt: Long = System.currentTimeMillis()
 )
 

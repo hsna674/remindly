@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -29,6 +30,9 @@ import com.example.reminderapp.data.SchoolClass
 import com.example.reminderapp.data.SchoolClasses
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.BorderStroke
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -38,7 +42,8 @@ fun DayRemindersScreen(
     availableClasses: List<SchoolClass> = SchoolClasses.defaultClasses,
     onNavigateBack: () -> Unit,
     onEditReminder: (Reminder) -> Unit = {},
-    onDeleteReminder: (Reminder) -> Unit = {}
+    onDeleteReminder: (Reminder) -> Unit = {},
+    onToggleComplete: (Reminder, Boolean) -> Unit = { _, _ -> }
 ) {
     // Group reminders by class
     val remindersByClass = reminders.groupBy { it.className }
@@ -167,7 +172,8 @@ fun DayRemindersScreen(
                                 reminders = classReminders,
                                 availableClasses = availableClasses,
                                 onEditReminder = onEditReminder,
-                                onDeleteReminder = onDeleteReminder
+                                onDeleteReminder = onDeleteReminder,
+                                onToggleComplete = onToggleComplete
                             )
                         }
                     }
@@ -188,7 +194,8 @@ fun ClassReminderSection(
     reminders: List<Reminder>,
     availableClasses: List<SchoolClass> = SchoolClasses.defaultClasses,
     onEditReminder: (Reminder) -> Unit = {},
-    onDeleteReminder: (Reminder) -> Unit = {}
+    onDeleteReminder: (Reminder) -> Unit = {},
+    onToggleComplete: (Reminder, Boolean) -> Unit = { _, _ -> }
 ) {
     val classInfo = availableClasses.find { it.name == className }
     val classColor = classInfo?.color ?: "#95A5A6"
@@ -240,7 +247,8 @@ fun ClassReminderSection(
                     reminder = reminder,
                     classColor = classColor,
                     onEditReminder = onEditReminder,
-                    onDeleteReminder = onDeleteReminder
+                    onDeleteReminder = onDeleteReminder,
+                    onToggleComplete = onToggleComplete
                 )
 
                 if (reminder != reminders.last()) {
@@ -257,9 +265,13 @@ fun ReminderItem(
     reminder: Reminder,
     classColor: String,
     onEditReminder: (Reminder) -> Unit = {},
-    onDeleteReminder: (Reminder) -> Unit = {}
+    onDeleteReminder: (Reminder) -> Unit = {},
+    onToggleComplete: (Reminder, Boolean) -> Unit = { _, _ -> }
 ) {
     var showOptionsMenu by remember { mutableStateOf(false) }
+
+    val textColor = if (reminder.isCompleted) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
+    val alpha = if (reminder.isCompleted) 0.6f else 1f
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -274,12 +286,17 @@ fun ReminderItem(
                 modifier = Modifier
                     .fillMaxWidth()
                     .combinedClickable(
-                        onClick = { /* Regular click - do nothing for now */ },
+                        onClick = {
+                            if (reminder.isTrackable) {
+                                onToggleComplete(reminder, !reminder.isCompleted)
+                            }
+                        },
                         onLongClick = { showOptionsMenu = true }
                     )
-                    .padding(16.dp),
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // Always show class color dot for consistency
                 Box(
                     modifier = Modifier
                         .size(8.dp)
@@ -289,15 +306,26 @@ fun ReminderItem(
 
                 Spacer(modifier = Modifier.width(12.dp))
 
+                // Title
                 Text(
                     text = reminder.name,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = textColor.copy(alpha = alpha),
+                    textDecoration = if (reminder.isCompleted) TextDecoration.LineThrough else TextDecoration.None,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f)
                 )
+
+                // Compact completion toggle at the end (only if trackable)
+                if (reminder.isTrackable) {
+                    Spacer(modifier = Modifier.width(12.dp))
+                    CompletionToggle(
+                        checked = reminder.isCompleted,
+                        onCheckedChange = { checked -> onToggleComplete(reminder, checked) }
+                    )
+                }
             }
 
             // Options dropdown menu
@@ -351,6 +379,42 @@ fun ReminderItem(
                         onDeleteReminder(reminder)
                     }
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CompletionToggle(
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    val bgColor by animateColorAsState(if (checked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant, label = "bg")
+    val contentColor by animateColorAsState(if (checked) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant, label = "fg")
+    val borderColor by animateColorAsState(if (checked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f), label = "bd")
+
+    Surface(
+        color = bgColor,
+        contentColor = contentColor,
+        shape = CircleShape,
+        border = BorderStroke(1.dp, borderColor),
+        modifier = Modifier
+            .size(22.dp)
+            .clip(CircleShape)
+            .clickable { onCheckedChange(!checked) },
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            if (checked) {
+                Icon(
+                    imageVector = Icons.Filled.Check,
+                    contentDescription = "Completed",
+                    modifier = Modifier.size(14.dp)
+                )
+            } else {
+                // Empty center; circle indicates tap target
+                Spacer(modifier = Modifier.size(14.dp))
             }
         }
     }

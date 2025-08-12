@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.graphics.toColorInt
 // Animation and interaction imports
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -50,6 +51,8 @@ fun AddReminderScreen(
     var reminderDate by remember { mutableStateOf(selectedDate) }
     var showClassDropdown by remember { mutableStateOf(false) }
     var showDatePicker by remember { mutableStateOf(false) }
+    // New: trackable toggle
+    var isTrackable by remember { mutableStateOf(false) }
 
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = reminderDate.toEpochDay() * 24 * 60 * 60 * 1000
@@ -191,7 +194,7 @@ fun AddReminderScreen(
                                     modifier = Modifier
                                         .size(24.dp)
                                         .clip(CircleShape)
-                                        .background(Color(android.graphics.Color.parseColor(selectedClass!!.color)))
+                                        .background(Color(selectedClass!!.color.toColorInt()))
                                 )
 
                                 Spacer(modifier = Modifier.width(16.dp))
@@ -253,7 +256,7 @@ fun AddReminderScreen(
                                                 modifier = Modifier
                                                     .size(20.dp)
                                                     .clip(CircleShape)
-                                                    .background(Color(android.graphics.Color.parseColor(schoolClass.color)))
+                                                    .background(Color(schoolClass.color.toColorInt()))
                                             )
 
                                             Spacer(modifier = Modifier.width(16.dp))
@@ -351,6 +354,42 @@ fun AddReminderScreen(
                 }
             }
 
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Trackable toggle section
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                ),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Track this reminder",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = "Adds a checkbox so you can mark it completed",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        )
+                    }
+                    Switch(
+                        checked = isTrackable,
+                        onCheckedChange = { isTrackable = it }
+                    )
+                }
+            }
+
             Spacer(modifier = Modifier.height(32.dp))
 
             // Save Button
@@ -361,7 +400,9 @@ fun AddReminderScreen(
                             id = System.currentTimeMillis().toString(),
                             name = reminderName.trim(),
                             className = selectedClass!!.name,
-                            date = reminderDate
+                            date = reminderDate,
+                            isTrackable = isTrackable,
+                            isCompleted = false
                         )
                         onReminderSaved(reminder)
                     }
