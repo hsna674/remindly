@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Modern minimalistic neutral palette with warm undertones -->
+    <color name="seed">#2D2A32</color>
+    <color name="primary">#2D2A32</color>
+    <color name="primary_light">#6B6B6B</color>
+    <color name="secondary">#6B6B6B</color>
+    <color name="tertiary">#8B7355</color>
+    <color name="background">#FEFEFE</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="outline">#E8E8E7</color>
+    <color name="black">#1C1C1C</color>
+    <color name="white">#FFFFFF</color>
+    <color name="gray_50">#FBFBFA</color>
+    <color name="gray_100">#F7F7F6</color>
+    <color name="gray_200">#F0F0EF</color>
+    <color name="gray_500">#757575</color>
+    <color name="gray_600">#6B6B6B</color>
+    <color name="gray_900">#2D2A32</color>
+    <color name="warm_100">#F8F6F3</color>
+    <color name="warm_200">#F5F4F2</color>
+    <color name="warm_accent">#8B7355</color>
+</resources>
